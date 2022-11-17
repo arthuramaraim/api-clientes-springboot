@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
 import java.nio.file.ReadOnlyFileSystemException;
 
 @RestController
@@ -25,7 +26,7 @@ public class ClienteController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Cliente salvar( @RequestBody Cliente cliente){
+    public Cliente salvar( @RequestBody @Valid Cliente cliente){
         return repository.save(cliente);
     }
 
@@ -45,12 +46,21 @@ public class ClienteController {
                     repository.delete(cliente);
                     return Void.TYPE;
                 })
-                .orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND) );
+                .orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado") );
     }
 
-//    @PutMapping
-//    public Cliente alterar(){
-//
-//    }
+    @PutMapping("{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void atualizar( @PathVariable Integer id, @RequestBody @Valid Cliente clienteAtulizado){
 
-}
+        repository.findById(id)
+                .map(cliente -> {
+                    clienteAtulizado.setId(cliente.getId());
+                   return repository.save(clienteAtulizado);
+                })
+                .orElseThrow( () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado") );
+    }
+
+    }
+
+
